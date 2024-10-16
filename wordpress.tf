@@ -4,7 +4,7 @@ provider "aws" {
   secret_key = "DZAmXsOcwpi1GCX6fR4Ka4jSj9UwlMKjchMKsYNp"
 }
 
-resource "aws_instance" "instance" {
+resource "aws_instance" "wordpress" {
   ami                         = "ami-00f251754ac5da7f0"
   instance_type               = "t2.medium"
   key_name                    = "yash"
@@ -12,7 +12,7 @@ resource "aws_instance" "instance" {
   associate_public_ip_address = true
   user_data                   = file("data.sh")
   tags = {
-    Name = "instance"
+    Name = "wordpress"
   }
 }
 
