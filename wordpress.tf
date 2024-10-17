@@ -1,5 +1,15 @@
+variable "aws_access_key" {
+  description = "AWS Access Key"
+}
+
+variable "aws_secret_key" {
+  description = "AWS Secret Key"
+}
+
 provider "aws" {
-  region     = "us-east-1"
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
+  region     = "us-east-1"  # Change this to your preferred region
 }
 resource "aws_instance" "wordpress" {
   ami                         = "ami-00f251754ac5da7f0"
