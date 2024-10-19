@@ -1,33 +1,105 @@
-variable "aws_access_key" {
-  description = "AWS Access Key"
-  type        = string
+provider "aws" {
+  region     = "us-east-1"
 }
 
-variable "aws_secret_key" {
-  description = "AWS Secret Key"
-  type        = string
-}
-provider "aws" {
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
-  region     = "us-east-1" 
-}
-resource "aws_instance" "wordpress" {
-  ami                         = "ami-00f251754ac5da7f0"
-  instance_type               = "t2.medium"
-  key_name                    = "yash"
-  vpc_security_group_ids      = [aws_security_group.securitygroup1.id]
-  associate_public_ip_address = true
-  user_data                   = file("data.sh")
+#creating VPC
+resource "aws_vpc" "yashvpc" {
+  cidr_block       = "10.0.0.0/16"
+  instance_tenancy = "default"
   tags = {
-    Name = "wordpress"
+    Name = "yashvpc"
+  }
+}
+#subnet_creation
+
+resource "aws_subnet" "web-subnet1" {
+  vpc_id                  = aws_vpc.yashvpc.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1a"
+  tags = {
+    name = "web-subnet1"
+  }
+}
+resource "aws_subnet" "web-subnet2" {
+  vpc_id                  = aws_vpc.yashvpc.id
+  cidr_block              = "10.0.2.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1b"
+  tags = {
+    name = "web-subnet2"
   }
 }
 
+resource "aws_subnet" "application-subnet1" {
+  vpc_id                  = aws_vpc.yashvpc.id
+  cidr_block              = "10.0.3.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1a"
+  tags = {
+    name = "application-subnet1"
+  }
+}
+resource "aws_subnet" "application-subnet2" {
+  vpc_id                  = aws_vpc.yashvpc.id
+  cidr_block              = "10.0.4.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1b"
+  tags = {
+    name = "application-subnet2"
+  }
+}
+resource "aws_subnet" "database-subnet1" {
+  vpc_id                  = aws_vpc.yashvpc.id
+  cidr_block              = "10.0.5.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1a"
+  tags = {
+    name = "database-subnet1"
+  }
+}
+
+resource "aws_subnet" "database-subnet2" {
+  vpc_id                  = aws_vpc.yashvpc.id
+  cidr_block              = "10.0.6.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1b"
+  tags = {
+    name = "database-subnet2"
+  }
+}
+
+#creating internet gateway
+resource "aws_internet_gateway" "yashigw" {
+  vpc_id = aws_vpc.yashvpc.id
+}
+# Creating  route table
+resource "aws_route_table" "public-route-table" {
+  vpc_id = aws_vpc.yashvpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.yashigw.id
+  }
+  tags = {
+    Name = "public-route-table"
+  }
+}
+
+# Associating Route table
+resource "aws_route_table_association" "rt1" {
+  subnet_id      = aws_subnet.web-subnet1.id
+  route_table_id = aws_route_table.public-route-table.id
+}
+
+# Associating Route table
+resource "aws_route_table_association" "rt2" {
+  subnet_id      = aws_subnet.web-subnet2.id
+  route_table_id = aws_route_table.public-route-table.id
+}
 #creating security group
 
-resource "aws_security_group" "securitygroup1" {
-
+resource "aws_security_group" "securitygroup" {
+  vpc_id = aws_vpc.yashvpc.id
   #inbound Rules
   ingress {
     from_port   = 80
@@ -54,6 +126,20 @@ resource "aws_security_group" "securitygroup1" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "securitygroup1"
+    Name = "securitygroup"
+  }
+}
+
+#creating 1st EC2 instance
+resource "aws_instance" "wordpress" {
+  ami                         = "ami-0ddc798b3f1a5117e"
+  instance_type               = "t2.micro"
+  key_name                    = "yash"
+  subnet_id                   = aws_subnet.web-subnet1.id
+  vpc_security_group_ids      = [aws_security_group.securitygroup.id]
+  associate_public_ip_address = true
+  user_data                   = file("data.sh")
+  tags = {
+    Name = "wordpress"
   }
 }
