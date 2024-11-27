@@ -132,9 +132,9 @@ resource "aws_security_group" "securitygroup" {
 
 #creating 1st EC2 instance
 resource "aws_instance" "wordpress" {
-  ami                         = "ami-0ddc798b3f1a5117e"
+  ami                         = "ami-0166fe664262f664c"
   instance_type               = "t2.micro"
-  key_name                    = "yash"
+  key_name                    = "jyo"
   subnet_id                   = aws_subnet.web-subnet1.id
   vpc_security_group_ids      = [aws_security_group.securitygroup.id]
   associate_public_ip_address = true
